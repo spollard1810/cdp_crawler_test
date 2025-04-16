@@ -4,6 +4,8 @@ import queue
 import threading
 import signal
 import sys
+import os
+from datetime import datetime
 from typing import Dict, Any
 from devices import NetworkDevice
 from connect import DeviceConnector
@@ -28,6 +30,33 @@ class CDPCrawler:
         # Set up signal handler for Ctrl+C
         signal.signal(signal.SIGINT, self._signal_handler)
 
+    def setup_logging(self) -> None:
+        """Configure logging with a new log file for each instance."""
+        # Create logs directory if it doesn't exist
+        log_dir = 'logs'
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
+        # Generate timestamp for log filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        log_file = os.path.join(log_dir, f'crawler_{timestamp}.log')
+
+        # Configure logging
+        logging.basicConfig(
+            level=getattr(logging, self.config['output']['log_level']),
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler(sys.stdout)
+            ]
+        )
+
+        # Log startup information
+        logging.info(f"Starting new crawler instance. Log file: {log_file}")
+        logging.info(f"Configuration loaded from: {self.config_path}")
+        logging.info(f"Database path: {self.config['database']['path']}")
+        logging.info(f"Seed device: {self.config['seed_device']['host']}")
+
     def _signal_handler(self, signum, frame):
         """Handle Ctrl+C signal."""
         self.logger.info("Received interrupt signal. Shutting down gracefully...")
@@ -51,15 +80,9 @@ class CDPCrawler:
 
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         """Load configuration from YAML file."""
+        self.config_path = config_path
         with open(config_path, 'r') as f:
             return yaml.safe_load(f)
-
-    def setup_logging(self) -> None:
-        """Configure logging based on config."""
-        logging.basicConfig(
-            level=getattr(logging, self.config['output']['log_level']),
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
 
     def _worker(self) -> None:
         """Worker thread for processing devices from the queue."""

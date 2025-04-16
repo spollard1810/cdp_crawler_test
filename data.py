@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import pandas as pd
 from typing import Dict, Any, List
 import logging
+import json
 
 Base = declarative_base()
 
@@ -33,14 +34,17 @@ class DatabaseManager:
     def add_device(self, device_data: Dict[str, Any]) -> bool:
         """Add a device to the database."""
         try:
+            # Convert neighbors list to JSON string
+            neighbors_json = json.dumps(device_data.get('neighbors', []))
+            
             device = Device(
-                hostname=device_data['hostname'],
+                hostname=device_data.get('hostname', ''),
                 ip=device_data['ip'],
                 device_type=device_data['device_type'],
-                serial_number=device_data.get('serial_number'),
-                platform=device_data.get('platform'),
-                version=device_data.get('version'),
-                neighbors=device_data.get('neighbors', {})
+                serial_number=device_data.get('serial_number', ''),
+                platform=device_data.get('platform', ''),
+                version=device_data.get('version', ''),
+                neighbors=neighbors_json
             )
             self.session.add(device)
             self.session.commit()
@@ -64,7 +68,7 @@ class DatabaseManager:
             'serial_number': d.serial_number,
             'platform': d.platform,
             'version': d.version,
-            'neighbors': d.neighbors
+            'neighbors': json.loads(d.neighbors) if d.neighbors else []
         } for d in devices]
 
     def export_to_csv(self, filename: str) -> None:
