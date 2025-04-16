@@ -27,20 +27,21 @@ class DeviceConnector:
             self.logger.error(f"Failed to connect to {device_info['host']}: {str(e)}")
             return None
 
-    def get_device_info(self, connection: ConnectHandler) -> Dict[str, Any]:
+    def get_device_info(self, connection: ConnectHandler, device_info: Dict[str, Any]) -> Dict[str, Any]:
         """Gather device information using show commands."""
-        device_info = {}
-        
         try:
             # Get device version and basic info
             version_output = connection.send_command("show version")
-            device_info.update(self.parser.parse_version(version_output))
-
+            device_data = self.parser.parse_version(version_output)
+            
+            # Add the IP address from the device_info
+            device_data['ip'] = device_info['host']
+            
             # Get CDP neighbors
             cdp_output = connection.send_command("show cdp neighbors detail")
-            device_info['neighbors'] = self.parser.parse_cdp_neighbors(cdp_output)
+            device_data['neighbors'] = self.parser.parse_cdp_neighbors(cdp_output)
 
-            return device_info
+            return device_data
         except Exception as e:
             self.logger.error(f"Error gathering device information: {str(e)}")
             return {}
