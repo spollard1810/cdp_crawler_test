@@ -34,14 +34,27 @@ class DeviceConnector:
             version_output = connection.send_command("show version")
             device_data = self.parser.parse_version(version_output)
             
-            # Add the IP address from the device_info
-            device_data['ip'] = device_info['host']
+            # Ensure all required fields are present
+            required_fields = {
+                'ip': device_info['host'],
+                'device_type': device_info['device_type'],
+                'hostname': device_data.get('hostname', ''),
+                'serial_number': device_data.get('serial_number', ''),
+                'platform': device_data.get('platform', ''),
+                'version': device_data.get('version', ''),
+                'neighbors': []
+            }
             
             # Get CDP neighbors
             cdp_output = connection.send_command("show cdp neighbors detail")
-            device_data['neighbors'] = self.parser.parse_cdp_neighbors(cdp_output)
+            required_fields['neighbors'] = self.parser.parse_cdp_neighbors(cdp_output)
 
-            return device_data
+            # Log any missing required fields
+            for field, value in required_fields.items():
+                if not value:
+                    self.logger.warning(f"Missing value for field: {field}")
+
+            return required_fields
         except Exception as e:
             self.logger.error(f"Error gathering device information: {str(e)}")
             return {}
