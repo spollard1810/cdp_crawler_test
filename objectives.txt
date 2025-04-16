@@ -1,0 +1,35 @@
+CDP Crawler:
+Devices.py
+-   class for NetworkDevice logic
+-   calls connect. py so all device related logic is abstracted
+Crawler-py
+-  handles business logic of crawling.
+-   threaded workers
+-   queue system
+- uses abstracted logic from devices to connect etc
+Connect. RY
+-   uses netmike to connect
+-   calls parser.py to sanitize/parse screenscraped data
+-   on first login, it will run show ver to get device information
+parser. py
+-  parses data using textfsm templates data.py
+-   manages data, sal de to store from devices "hostname", "ip", 'serial number', 'device type", "version", "platform", "rommon", "config_register", "mac_address", "uptime"
+Main point of script.
+Network crawler using threaded workers to crawl entire network using 'show cdp n' to gather more endpoints to crawl steps of crawler:
+start at queue of 1 which is the device we seed with
+login to device -› show version →> (to get device info) -> show cdp neighbors detail (to find next targets) store data in sal database. before each time we connect to a device we will see if it has already been crawled by using a relational DB this main loop will happen until every single item in queue is exhausted after last device is exhausted -> dump entire sal to csv
+/templates for textfs templates config yaml for base config
+
+CLI Interface (main.py):
+- Provides user-friendly command-line interface
+- Commands:
+  - crawl: Start the network crawling process
+  - show-config: Display current configuration
+  - status: Show crawl database status
+- Features:
+  - Progress indicators
+  - Rich text formatting
+  - Configuration validation
+  - Error handling
+  - Summary tables
+  - Device status display

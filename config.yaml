@@ -1,0 +1,32 @@
+# CDP Crawler Configuration
+
+# Seed device configuration
+seed_device:
+  host: "192.168.1.1"  # Replace with your seed device IP
+  device_type: "cisco_ios"
+  username: "admin"
+  password: "password"  # Replace with your password
+  port: 22
+
+# Database configuration
+database:
+  type: "sqlite"
+  path: "network_inventory.db"
+
+# Crawler settings
+crawler:
+  max_threads: 5
+  timeout: 30  # seconds
+  retry_count: 3
+  retry_delay: 5  # seconds
+
+# Output settings
+output:
+  csv_path: "network_inventory.csv"
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+# TextFSM template paths
+templates:
+  show_version: "templates/cisco_ios_show_version.template"
+  show_inventory: "templates/cisco_ios_show_inventory.template"
+  show_cdp_neighbors: "templates/cisco_ios_show_cdp_neighbors.template" 
